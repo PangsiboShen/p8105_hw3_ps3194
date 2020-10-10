@@ -131,9 +131,51 @@ For the first weeks, the patient's daily total activity counts generally had inc
 
 ###### plot showing 24 hour activity
 ```{r}
+accel = accel %>%
+  mutate(hour = case_when(
+    minute %in% 1:60 ~ 1,
+    minute %in% 61:120 ~ 2,
+    minute %in% 121:180 ~ 3,
+    minute %in% 181:240 ~ 4,
+    minute %in% 241:300 ~ 5,
+    minute %in% 301:360 ~ 6,
+    minute %in% 361:420 ~ 7,
+    minute %in% 421:480 ~ 8,
+    minute %in% 481:540 ~ 9,
+    minute %in% 541:600 ~ 10,
+    minute %in% 601:660 ~ 11,
+    minute %in% 661:720 ~ 12,
+    minute %in% 721:800 ~ 13,
+    minute %in% 801:860 ~ 14,
+    minute %in% 861:920 ~ 15,
+    minute %in% 921:980 ~ 16,
+    minute %in% 981:1040 ~ 17,
+    minute %in% 1041:1100 ~ 18,
+    minute %in% 1101:1160 ~ 19,
+    minute %in% 1161:1200 ~ 20,
+    minute %in% 1201:1260 ~ 21,
+    minute %in% 1261:1320 ~ 22,
+    minute %in% 1321:1380 ~ 23,
+    minute %in% 1381:1440 ~ 24,
+    )) %>%
+  group_by(week, day_id, day, hour) %>%
+  summarise(
+    hour_count = sum(activity_count)
+  )
+
+head(accel)
 
 ```
 
+```{r}
+accel %>%
+  ggplot(aes(x = hour, y = hour_count, fill = day, color = week)) +
+  geom_line(alpha = 0.3) +
+  scale_x_continuous(breaks = accel$hour) + 
+  ylab("hourly activity count") +
+  guides(fill = guide_legend(title = "Week")) 
+  #facet_grid(week ~.)
+```
 
 ## Problem 3
 load dataset
