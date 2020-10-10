@@ -173,7 +173,53 @@ This is a graph showing the 5 weeks average 24-hour activity count for each day 
 
 
 ## Problem 3
-load dataset
+
+###### load dataset
 ```{r}
 data("ny_noaa")
 ```
+
+###### data cleaning and separate the date
+```{r}
+ny_noaa_tidy = ny_noaa %>%
+  na.omit() %>%
+  separate(date,
+           c("year","month","day"),
+           sep = "-") %>%
+  transform(
+    tmax = as.numeric(tmax),
+    tmin = as.numeric(tmin),
+    snow = as.character(snow)
+  ) %>%
+  mutate(
+   prcp = prcp/10,
+   tmax = tmax/10,
+   tmin = tmin/10
+  )
+
+head(ny_noaa_tidy)
+```
+######  the most commonly observed values for snowfall
+```{r}
+ny_noaa_tidy %>%
+  count(snow) %>%
+  arrange(desc(n)) %>%
+  head()
+```
+Other than days without snow (snowfall is 0), the most commonly observed value for snowfall is 25 mm.
+ 
+```{r}
+ny_noaa_tidy %>%
+  filter(month %in% c("01","07")) %>%
+  transform(year = as.numeric(year),
+            id = as.factor(id)) %>%
+  mutate(month = recode(month, "01" = "January", "07" = "July")) %>%
+  group_by(id, year, month) %>%
+  summarise(mean_tmax = mean(tmax)) %>%
+  ggplot(aes(x = year, y = mean_tmax, group =id)) +
+  geom_line() +
+  theme(axis.text.x = element_text(angle = 70, vjust = 0.5, hjust = 1)) +
+  facet_grid(cols = vars(month))
+```
+
+ 
