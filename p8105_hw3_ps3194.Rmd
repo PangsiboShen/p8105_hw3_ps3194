@@ -9,12 +9,6 @@ output: github_document
 library(tidyverse)
 library(p8105.datasets)
 
-knitr::opts_chunk$set(
-  fig.width = 6,
-  fig.asp = .6,
-  out.width = "90%"
-)
-
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 options(
@@ -129,7 +123,7 @@ accel %>%
 ```
 For the first weeks, the patient's daily total activity counts generally had increased from Monday to Sunday.For week 4, the patient's daily total activity counts had decreased from Monday to Saturday. For week 5, the patient's daily total activity counts had increased from Monday to Friday.
 
-###### plot showing 24 hour activity
+##### wrangling the date for the plot
 ```{r}
 accel = accel %>%
   mutate(hour = case_when(
@@ -163,19 +157,20 @@ accel = accel %>%
     hour_count = sum(activity_count)
   )
 
-head(accel)
-
 ```
-
+###### plot showing 24 hour activity
 ```{r}
 accel %>%
-  ggplot(aes(x = hour, y = hour_count, fill = day, color = week)) +
-  geom_line(alpha = 0.3) +
+  group_by(day, hour) %>%
+  summarise(avg_hour_count = mean(hour_count)) %>%
+  ggplot(aes(x = hour, y = avg_hour_count, color = day)) +
+  geom_line(alpha = 10) +
   scale_x_continuous(breaks = accel$hour) + 
-  ylab("hourly activity count") +
-  guides(fill = guide_legend(title = "Week")) 
-  #facet_grid(week ~.)
+  ylab("avg hourly activity count by weeks") +
+  guides(fill = guide_legend(title = "Week"))
 ```
+This is a graph showing the 5 weeks average 24-hour activity count for each day in the week. From the graph, we noticed that the patient started to become active around 7 am (the patient wakes up). The activity count peaks around 13 pm and 21 pm and the peaks might be explained by exercising activities such as walking after lunch and before bed.   
+
 
 ## Problem 3
 load dataset
