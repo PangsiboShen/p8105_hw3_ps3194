@@ -3,11 +3,13 @@ title: "p8105_hw3_ps3194"
 author: "Pangsibo Shen"
 date: "10/9/2020"
 output: github_document
+always_allow_html: true
 ---
 
 ```{r setup, include = FALSE}
 library(tidyverse)
 library(p8105.datasets)
+library(plotly)
 
 theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
@@ -209,17 +211,17 @@ ny_noaa_tidy %>%
 Other than days without snow (snowfall is 0), the most commonly observed value for snowfall is 25 mm.
  
 ```{r}
-ny_noaa_tidy %>%
+ny_noaa_tidy_fig = ny_noaa_tidy %>%
   filter(month %in% c("01","07")) %>%
-  transform(year = as.numeric(year),
-            id = as.factor(id)) %>%
   mutate(month = recode(month, "01" = "January", "07" = "July")) %>%
   group_by(id, year, month) %>%
   summarise(mean_tmax = mean(tmax)) %>%
-  ggplot(aes(x = year, y = mean_tmax, group =id)) +
-  geom_line() +
-  theme(axis.text.x = element_text(angle = 70, vjust = 0.5, hjust = 1)) +
-  facet_grid(cols = vars(month))
+  ggplot(aes(x = year, y = mean_tmax, group = id)) +
+  geom_path(aes(color = id)) +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5)) +
+  facet_grid(rows = vars(month))
+
+ggplotly(ny_noaa_tidy_fig)
 ```
 
  
