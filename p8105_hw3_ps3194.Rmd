@@ -33,7 +33,7 @@ scale_fill_discrete = scale_fill_viridis_d
 data("instacart")
 ```
 
-how many aisles, and which are most items from?
+###### how many aisles, and which are most items from?
 
 ```{r}
 instacart %>%
@@ -41,7 +41,7 @@ instacart %>%
   arrange(desc(n))
 ```
 
-Let's make a plot
+###### Let's make a plot
 
 ```{r}
 instacart %>%
@@ -55,7 +55,7 @@ instacart %>%
   geom_point() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
 ```
-Let's make a table!
+###### Let's make a table!
 ```{r}
 instacart %>%
   filter(aisle %in% c("baking ingredients","dog food care", "packaged vegetables fruits")) %>%
@@ -67,7 +67,7 @@ instacart %>%
   knitr::kable()
 ```
 
-Apples vs ice cream.
+###### Apples vs ice cream.
 
 ```{r}
 instacart %>%
@@ -82,7 +82,7 @@ instacart %>%
 
 ## Problem 2
 
-load and tidy the data
+###### load and tidy the data
 ```{r accel}
 accel = read_csv("./data/accel_data.csv") %>%
   janitor::clean_names() %>%
@@ -94,14 +94,44 @@ accel = read_csv("./data/accel_data.csv") %>%
   ) %>%
   transform(
     minute = as.numeric(minute),
-    day = as.factor(day),
+    #day = as_factor(day),
     week = as.factor(week)
   ) %>%
   mutate(weekday = case_when(
     day %in% c("Monday","Tuesday","Wednesday","Thursday","Friday") ~ "weekday",
-    day %in% c("Saturday","Sunday") ~ "weekend"
-)
-)
+    day %in% c("Saturday","Sunday") ~ "weekend")
+  ) %>%
+  transform(
+    weekday = as.factor(weekday)
+  )
+ 
+
+head(accel)
+
+```
+
+The resulting dataset has 6 variables: week, day_id, day, minute, activity_count and weekday. The weekday variable has two levels: weekday and weekend. There are `r nrow(accel)` observations from the dataset.
+
+###### relevel the day variable to chronological order
+```{r relevel}
+accel$day = factor(accel$day, c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"))
+```
+
+###### create a table showing the sum count for each day
+```{r table}
+accel %>%
+  group_by(week, day_id, day) %>%
+  summarise(
+    sum_count = sum(activity_count)
+  ) %>%
+  arrange(week,day) %>%
+  knitr::kable(align = 'c')
+```
+For the first weeks, the patient's daily total activity counts generally had increased from Monday to Sunday.For week 4, the patient's daily total activity counts had decreased from Monday to Saturday. For week 5, the patient's daily total activity counts had increased from Monday to Friday.
+
+###### plot showing 24 hour activity
+```{r}
+
 ```
 
 
