@@ -2,8 +2,9 @@
 title: "p8105_hw3_ps3194"
 author: "Pangsibo Shen"
 date: "10/9/2020"
-output: github_document
-always_allow_html: true
+output:
+  html_document:
+    keep_md: true
 ---
 
 ```{r setup, include = FALSE}
@@ -36,6 +37,8 @@ instacart %>%
   count(aisle) %>%
   arrange(desc(n))
 ```
+
+There are 134 aisles, the the fresh vegetables aisle is the most items from. 
 
 ###### Let's make a plot
 
@@ -141,14 +144,14 @@ accel = accel %>%
     minute %in% 541:600 ~ 10,
     minute %in% 601:660 ~ 11,
     minute %in% 661:720 ~ 12,
-    minute %in% 721:800 ~ 13,
-    minute %in% 801:860 ~ 14,
-    minute %in% 861:920 ~ 15,
-    minute %in% 921:980 ~ 16,
-    minute %in% 981:1040 ~ 17,
-    minute %in% 1041:1100 ~ 18,
-    minute %in% 1101:1160 ~ 19,
-    minute %in% 1161:1200 ~ 20,
+    minute %in% 721:780 ~ 13,
+    minute %in% 781:840 ~ 14,
+    minute %in% 841:900 ~ 15,
+    minute %in% 901:960 ~ 16,
+    minute %in% 961:1020 ~ 17,
+    minute %in% 1021:1080 ~ 18,
+    minute %in% 1081:1140 ~ 19,
+    minute %in% 1141:1200 ~ 20,
     minute %in% 1201:1260 ~ 21,
     minute %in% 1261:1320 ~ 22,
     minute %in% 1321:1380 ~ 23,
@@ -169,6 +172,7 @@ accel %>%
   geom_line(alpha = 10) +
   scale_x_continuous(breaks = accel$hour) + 
   ylab("avg hourly activity count by weeks") +
+  ggtitle("24 Hour Activity") +
   guides(fill = guide_legend(title = "Week"))
 ```
 This is a graph showing the 5 weeks average 24-hour activity count for each day in the week. From the graph, we noticed that the patient started to become active around 7 am (the patient wakes up). The activity count peaks around 13 pm and 21 pm and the peaks might be explained by exercising activities such as walking after lunch and before bed.   
@@ -210,18 +214,55 @@ ny_noaa_tidy %>%
 ```
 Other than days without snow (snowfall is 0), the most commonly observed value for snowfall is 25 mm.
  
-```{r}
+```{r ggplot}
 ny_noaa_tidy_fig = ny_noaa_tidy %>%
   filter(month %in% c("01","07")) %>%
   mutate(month = recode(month, "01" = "January", "07" = "July")) %>%
   group_by(id, year, month) %>%
   summarise(mean_tmax = mean(tmax)) %>%
   ggplot(aes(x = year, y = mean_tmax, group = id)) +
-  geom_path(aes(color = id)) +
-  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5)) +
-  facet_grid(rows = vars(month))
+  geom_point(aes(color = id), show.legend = F) +
+  theme(axis.text.x = element_text(angle = 70, vjust = 0.5, hjust = 0.5)) +
+  theme(axis.title.x = element_text(margin = margin(0,0,0,0))) +
+  facet_grid(cols = vars(month))
 
-ggplotly(ny_noaa_tidy_fig)
+ny_noaa_tidy_fig
 ```
+From the graph, we can see the average max temperature for those weather stations across years. The average max temperature in July is significantly higher than that in January. Also, the variation for average max temperature in January is larger than that in July. I don't see a particular trend that indicates global warming from the figure. On the other hand, there are too many lines overlaid with each other due to the large amount of Weather station ID. Hence ggplot is not very informative to show the which particular stations having extreme temperatures than others across years (outliers). In order to address this problem, a ggplotly() is used. 
 
- 
+```{r plotly}
+ggplotly(
+  ny_noaa_tidy %>%
+  filter(month %in% c("01","07")) %>%
+  mutate(month = recode(month, "01" = "January", "07" = "July")) %>%
+  group_by(id, year, month) %>%
+  summarise(mean_tmax = mean(tmax)) %>%
+  ggplot(aes(x = year, y = mean_tmax, group = id)) +
+  geom_point(aes(color = id)) +
+  geom_path(aes(color = id), alpha = 0.2) +
+  theme(axis.text.x = element_text(angle = 50, vjust = 0.5, hjust = 1)) +
+  theme(axis.title.x = element_text(margin = margin(10,0,0,0))) +
+  facet_grid(cols = vars(month))
+)
+```
+From the plotly figure, we can capture several outliers: one outlier point which in July 1988, station USC00308962 had a average max temperature of 14 degree Celsius which was significantly lower than the mean_tmax of any other stations; another outlier point which in 1982 January, station USC00303889 had a average max temperature of -16.7 degree Celsius which was significantly lower than the mean_tmax of any other stations; another outlier point which in January 1996, station USC00309389 had a average max temperature of -16.1 degree Celsius which was significantly lower than the mean_tmax of any other stations.
+
+###### Make a two-panel plot showing tmax vs tmin for the full dataset and showing the distribution of snowfall values greater than 0 and less than 100 separately by year
+
+```{r violin}
+tmax_min_fig = ny_noaa_tidy %>%
+  ggplot(aes(x = tmin, y = tmax)) +
+  geom_bin2d() +
+  ggtitle("max vs min temperature density") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))
+
+ny_noaa_snow = ny_noaa_tidy %>%
+  transform(snow = as.numeric(snow)) %>%
+  filter(snow > 0 & snow < 100) %>%
+  ggplot(aes(x = year, y = snow, fill = year)) +
+  geom_violin() +
+  ggtitle("snowfall density") +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust = 0.5))
+
+ggpubr::ggarrange(tmax_min_fig, ny_noaa_snow, ncol = 2, nrow = 1)
+```
